@@ -95,3 +95,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Visual Studio IDE Config - Humberto Torralba
+*.vsconfig
