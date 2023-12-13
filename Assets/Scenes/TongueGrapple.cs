@@ -1,114 +1,114 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class Grappling : MonoBehaviour
+public class TongueGrapple : MonoBehaviour
 {
-    [Header("References")]
-    private PlayerMovement pm;
-    public Transform Player;
-    public Transform Mouth;
-    private Vector2 mousePosition;
-    public LayerMask whatIsGrappleable;
-    public LineRenderer lr;
+    [Header("General Refernces:")]
+    public MouthScript mouth;
+    public LineRenderer m_lineRenderer;
 
-    [Header("Grappling")]
-    public float maxGrappleDistance;
-    public float grappleDelayTime;
-    public float overshootYAxis;
+    [Header("General Settings:")]
+    [SerializeField] private int percision = 40;
+    [Range(0, 20)] [SerializeField] private float straightenLineSpeed = 5;
 
-    private Vector2 grapplePoint;
+    [Header("Rope Animation Settings:")]
+    public AnimationCurve ropeAnimationCurve;
+    [Range(0.01f, 4)] [SerializeField] private float StartWaveSize = 2;
+    float waveSize = 0;
 
-    [Header("Cooldown")]
-    public float grapplingCd;
-    private float grapplingCdTimer;
+    [Header("Rope Progression:")]
+    public AnimationCurve ropeProgressionCurve;
+    [SerializeField] [Range(1, 50)] private float ropeProgressionSpeed = 1;
 
-    [Header("Input")]
-    public KeyCode grappleKey = KeyCode.Mouse1;
+    float moveTime = 0;
 
-    private bool grappling;
+    [HideInInspector] public bool isGrappling = true;
 
-    private void Start()
-    {   
-        pm = GetComponent<PlayerMovement>();
+    bool strightLine = true;
+
+    private void OnEnable()
+    {
+        moveTime = 0;
+        m_lineRenderer.positionCount = percision;
+        waveSize = StartWaveSize;
+        strightLine = false;
+
+        LinePointsToFirePoint();
+
+        m_lineRenderer.enabled = true;
+    }
+
+    private void OnDisable()
+    {
+        m_lineRenderer.enabled = false;
+        isGrappling = false;
+    }
+
+    private void LinePointsToFirePoint()
+    {
+        for (int i = 0; i < percision; i++)
+        {
+            m_lineRenderer.SetPosition(i, mouth.firePoint.position);
+        }
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(grappleKey)) StartGrapple();
-
-        if (grapplingCdTimer > 0)
-            grapplingCdTimer -= Time.deltaTime;
+        moveTime += Time.deltaTime;
+        DrawRope();
     }
 
-    private void LateUpdate()
+    void DrawRope()
     {
-        if (grappling)
-          lr.SetPosition(0, Mouth.position);
-    }
-
-    private void StartGrapple()
-    {
-        if (grapplingCdTimer > 0) return;
-
-        grappling = true;
-
-        //pm.freeze = true;
-
-        RaycastHit2D hit = Physics2D.Raycast(Mouth.position, Camera.main.ScreenToWorldPoint(Input.mousePosition) - Mouth.position, maxGrappleDistance, whatIsGrappleable);
-
-        if (hit)
+        if (!strightLine)
         {
-            grapplePoint = hit.point;
-
-            Invoke(nameof(ExecuteGrapple), grappleDelayTime);
+            if (m_lineRenderer.GetPosition(percision - 1).x == mouth.grapplePoint.x)
+            {
+                strightLine = true;
+            }
+            else
+            {
+                DrawRopeWaves();
+            }
         }
         else
         {
-            Vector3 mouseInWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            grapplePoint = new Vector2(Mouth.position.x, Mouth.position.y) + new Vector2(mouseInWorld.x, mouseInWorld.y) * maxGrappleDistance;
+            if (!isGrappling)
+            {
+                mouth.Grapple();
+                isGrappling = true;
+            }
+            if (waveSize > 0)
+            {
+                waveSize -= Time.deltaTime * straightenLineSpeed;
+                DrawRopeWaves();
+            }
+            else
+            {
+                waveSize = 0;
 
-            Invoke(nameof(StopGrapple), grappleDelayTime);
+                if (m_lineRenderer.positionCount != 2) { m_lineRenderer.positionCount = 2; }
+
+                DrawRopeNoWaves();
+            }
         }
-
-        lr.enabled = true;
-        lr.SetPosition(1, grapplePoint);
     }
 
-    private void ExecuteGrapple()
+    void DrawRopeWaves()
     {
-        //pm.freeze = false;
+        for (int i = 0; i < percision; i++)
+        {
+            float delta = (float)i / ((float)percision - 1f);
+            Vector2 offset = Vector2.Perpendicular(mouth.grappleDistanceVector).normalized * ropeAnimationCurve.Evaluate(delta) * waveSize;
+            Vector2 targetPosition = Vector2.Lerp(mouth.firePoint.position, mouth.grapplePoint, delta) + offset;
+            Vector2 currentPosition = Vector2.Lerp(mouth.firePoint.position, targetPosition, ropeProgressionCurve.Evaluate(moveTime) * ropeProgressionSpeed);
 
-        Vector2 lowestPoint = new Vector2(transform.position.x, transform.position.y - 1f);
-
-        float grapplePointRelativeYPos = grapplePoint.y - lowestPoint.y;
-        float highestPointOnArc = grapplePointRelativeYPos + overshootYAxis;
-
-        if (grapplePointRelativeYPos < 0) highestPointOnArc = overshootYAxis;
-
-        //pm.JumpToPosition(grapplePoint, highestPointOnArc);
-
-        Invoke(nameof(StopGrapple), 1f);
+            m_lineRenderer.SetPosition(i, currentPosition);
+        }
     }
 
-    public void StopGrapple()
+    void DrawRopeNoWaves()
     {
-        //pm.freeze = false;
-
-        grappling = false;
-
-        grapplingCdTimer = grapplingCd;
-
-        lr.enabled = false;
-    }
-
-    public bool IsGrappling()
-    {
-        return grappling;
-    }
-
-    public Vector2 GetGrapplePoint()
-    {
-        return grapplePoint;
+        m_lineRenderer.SetPosition(0, mouth.firePoint.position);
+        m_lineRenderer.SetPosition(1, mouth.grapplePoint);
     }
 }

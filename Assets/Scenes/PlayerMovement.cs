@@ -6,7 +6,6 @@ public class PlayerMovement : MonoBehaviour
 {
     private float horizontal;
     private float finalXSpeed = 0;
-    public float friction;
     public float speed;
     public float jumpingPower;
     private bool isFacingRight = true;
@@ -24,19 +23,28 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // Either 1, 0, or -1 depending on moving left, right or not.
+        // Either -1, 1, or 0 depending on moving left, right or not.
         horizontal = Input.GetAxisRaw("Horizontal");
         if (horizontal != 0f) 
         {
             // Sync the finalXSpeed to player.velocity.x
             finalXSpeed = rb.velocity.x;
 
-            // Psuedo horizontal acceleration. 1/10 increments the finalXSpeed for each loop
-            finalXSpeed += horizontal * speed / 10;
+            if (Mathf.Abs(rb.velocity.x) > speed)
+            {
+                if (Mathf.Abs(rb.velocity.x + horizontal * speed / 10) <= Mathf.Abs(rb.velocity.x))
+                {
+                    // Psuedo horizontal acceleration. 1/10 increments the finalXSpeed for each loop
+                    finalXSpeed += horizontal * speed / 10;
+                }
+            } else
+            {
+                // Psuedo horizontal acceleration. 1/10 increments the finalXSpeed for each loop
+                finalXSpeed += horizontal * speed / 10;
+                // Ternary assignment depending on if finalXSpeed is larger than speed
+                finalXSpeed = (Mathf.Abs(finalXSpeed) > speed) ? horizontal * speed : finalXSpeed;
+            }
 
-            // Ternary assignment depending on if finalXSpeed is larger than speed
-            finalXSpeed = (Mathf.Abs(finalXSpeed) > speed) ? horizontal * speed : finalXSpeed;
-         
             rb.velocity = new Vector2(finalXSpeed, rb.velocity.y);
         }
 
