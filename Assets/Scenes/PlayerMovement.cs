@@ -6,7 +6,6 @@ public class PlayerMovement : MonoBehaviour
 {
     private float horizontal;
     private float finalXSpeed = 0;
-    public float friction;
     public float speed;
     public float jumpingPower;
     private bool isFacingRight = true;
