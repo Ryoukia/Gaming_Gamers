@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class MouthScript : MonoBehaviour
@@ -9,7 +7,7 @@ public class MouthScript : MonoBehaviour
 
     [Header("Layers Settings:")]
     [SerializeField] private bool grappleToAll = false;
-    [SerializeField] private int grappableLayerNumber = 9;
+    [SerializeField] private int grappableLayerNumber = 3;
 
     [Header("Main Camera:")]
     public Camera m_camera;
@@ -22,16 +20,13 @@ public class MouthScript : MonoBehaviour
     [Header("Physics Ref:")]
     public SpringJoint2D m_springJoint2D;
     public Rigidbody2D m_rigidbody;
-    public int gravityInitial = 8;
-    
 
     [Header("Rotation:")]
     [SerializeField] private bool rotateOverTime = true;
     [Range(0, 60)] [SerializeField] private float rotationSpeed = 4;
 
     [Header("Distance:")]
-    [SerializeField] private bool hasMaxDistance = false;
-    [SerializeField] private float maxDistnace = 20;
+    [SerializeField] private float maxDistance = 20;
 
     private enum LaunchType
     {
@@ -56,6 +51,7 @@ public class MouthScript : MonoBehaviour
     {
         tongue.enabled = false;
         m_springJoint2D.enabled = false;
+
     }
 
     private void Update()
@@ -90,7 +86,7 @@ public class MouthScript : MonoBehaviour
         {
             tongue.enabled = false;
             m_springJoint2D.enabled = false;
-            m_rigidbody.gravityScale = gravityInitial;
+            m_rigidbody.gravityScale = 8;
         }
         else
         {
@@ -117,17 +113,16 @@ public class MouthScript : MonoBehaviour
     void SetGrapplePoint()
     {
         Vector2 distanceVector = m_camera.ScreenToWorldPoint(Input.mousePosition) - gunPivot.position;
-        if (Physics2D.Raycast(firePoint.position, distanceVector.normalized))
+        RaycastHit2D hit = Physics2D.Raycast(firePoint.position, distanceVector, maxDistance);
+        if (hit)
         {
-            RaycastHit2D _hit = Physics2D.Raycast(firePoint.position, distanceVector.normalized);
-            if (_hit.transform.gameObject.layer == grappableLayerNumber || grappleToAll)
+            if (hit.transform.gameObject.layer == grappableLayerNumber || grappleToAll)
             {
-                if (Vector2.Distance(_hit.point, firePoint.position) <= maxDistnace || !hasMaxDistance)
-                {
-                    grapplePoint = _hit.point;
-                    grappleDistanceVector = grapplePoint - (Vector2)gunPivot.position;
-                    tongue.enabled = true;
-                }
+                //if (Vector2.Distance(hit.point, firePoint.position) <= maxDistance)
+              
+                grapplePoint = hit.point;
+                grappleDistanceVector = grapplePoint - (Vector2)gunPivot.position;
+                tongue.enabled = true;
             }
         }
     }
@@ -174,11 +169,7 @@ public class MouthScript : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (firePoint != null && hasMaxDistance)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(firePoint.position, maxDistnace);
-        }
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(firePoint.position, maxDistance);
     }
-
 }
