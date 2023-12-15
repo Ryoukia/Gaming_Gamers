@@ -6,7 +6,6 @@ public class MouthScript : MonoBehaviour
     public TongueGrapple tongue;
 
     [Header("Layers Settings:")]
-    [SerializeField] private bool grappleToAll = false;
     [SerializeField] private int grappableLayerNumber = 3;
 
     [Header("Main Camera:")]
@@ -74,7 +73,8 @@ public class MouthScript : MonoBehaviour
 
             if (launchToPoint && tongue.isGrappling)
             {
-                if (launchType == LaunchType.Transform_Launch)
+                //if (launchType == LaunchType.Transform_Launch)
+                if (Input.GetKey(KeyCode.Space))
                 {
                     Vector2 firePointDistnace = firePoint.position - gunHolder.localPosition;
                     Vector2 targetPos = grapplePoint - firePointDistnace;
@@ -113,17 +113,14 @@ public class MouthScript : MonoBehaviour
     void SetGrapplePoint()
     {
         Vector2 distanceVector = m_camera.ScreenToWorldPoint(Input.mousePosition) - gunPivot.position;
-        RaycastHit2D hit = Physics2D.Raycast(firePoint.position, distanceVector, maxDistance);
+        RaycastHit2D hit = Physics2D.Raycast(firePoint.position, distanceVector, maxDistance, 1 << grappableLayerNumber);
+
         if (hit)
         {
-            if (hit.transform.gameObject.layer == grappableLayerNumber || grappleToAll)
-            {
-                //if (Vector2.Distance(hit.point, firePoint.position) <= maxDistance)
-              
-                grapplePoint = hit.point;
-                grappleDistanceVector = grapplePoint - (Vector2)gunPivot.position;
-                tongue.enabled = true;
-            }
+            grapplePoint = hit.point;
+            grappleDistanceVector = grapplePoint - (Vector2)gunPivot.position;
+            tongue.enabled = true;
+            
         }
     }
 

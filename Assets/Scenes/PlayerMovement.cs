@@ -25,22 +25,22 @@ public class PlayerMovement : MonoBehaviour
     {
         // Either -1, 1, or 0 depending on moving left, right or not.
         horizontal = Input.GetAxisRaw("Horizontal");
+
         if (horizontal != 0f) 
         {
             // Sync the finalXSpeed to player.velocity.x
             finalXSpeed = rb.velocity.x;
 
-            if (Mathf.Abs(rb.velocity.x) > speed)
+            if (Mathf.Abs(rb.velocity.x) > speed && Mathf.Abs(rb.velocity.x + horizontal * speed / 10) <= Mathf.Abs(rb.velocity.x))
             {
-                if (Mathf.Abs(rb.velocity.x + horizontal * speed / 10) <= Mathf.Abs(rb.velocity.x))
-                {
-                    // Psuedo horizontal acceleration. 1/10 increments the finalXSpeed for each loop
-                    finalXSpeed += horizontal * speed / 10;
-                }
+                // Psuedo horizontal acceleration. 1/10 increments the finalXSpeed for each loop
+                finalXSpeed += horizontal * speed / 10;
+                
             } else
             {
                 // Psuedo horizontal acceleration. 1/10 increments the finalXSpeed for each loop
                 finalXSpeed += horizontal * speed / 10;
+
                 // Ternary assignment depending on if finalXSpeed is larger than speed
                 finalXSpeed = (Mathf.Abs(finalXSpeed) > speed) ? horizontal * speed : finalXSpeed;
             }
