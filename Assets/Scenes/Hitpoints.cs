@@ -1,18 +1,28 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class Hitpoints : MonoBehaviour
 {
-    // Start is called before the first frame update
+    public int maxHealth = 100;
+    public int currHealth;
+    public slider healthBar;
     void Start()
     {
-        
+        currHealth = maxHealth;
+        healthBar.SetMaxHealth(maxHealth);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            TakeDamage(1);
+        }
+    }
+
+    void TakeDamage(int dmg) {
+        currHealth -= dmg;
+        healthBar.CurrHealth(currHealth);
     }
 }
