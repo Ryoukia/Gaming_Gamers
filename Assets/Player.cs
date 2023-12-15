@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class Hitpoints : MonoBehaviour
+public class Player : MonoBehaviour
 {
     public int maxHealth = 100;
     public int currHealth;
@@ -16,12 +16,14 @@ public class Hitpoints : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space)) {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
             TakeDamage(1);
         }
     }
 
-    void TakeDamage(int dmg) {
+    void TakeDamage(int dmg)
+    {
         currHealth -= dmg;
         healthBar.CurrHealth(currHealth);
     }
