@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class BulletLogic : MonoBehaviour
 {
-    void OnTriggerEnter2D(Collision2D col) 
+    void OnTriggerEnter2D(Collider2D col) 
     {
+        Debug.Log("BULLET COLLISION TRIGGER col.gameobject.tag = " + col.gameObject.tag);
         if (col.gameObject.tag != "Player")
         {
             Destroy(gameObject);
